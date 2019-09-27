@@ -9,6 +9,10 @@ import (
 
 func allocate(t *testing.T, ipam *IPAM, expected string, left int64) {
 	a, err := ipam.Allocate()
+	u := ipam.Unallocated()
+	if u != left {
+		t.Errorf("Unallocated %d, expected %d", u, left)
+	}
 	if err != nil {
 		if expected != "" {
 			t.Errorf("Unexpected error for %s", expected)
@@ -17,10 +21,6 @@ func allocate(t *testing.T, ipam *IPAM, expected string, left int64) {
 	}
 	if !a.Equal(net.ParseIP(expected)) {
 		t.Errorf("Address %s, expected %s", a, expected)
-	}
-	u := ipam.Unallocated()
-	if u != left {
-		t.Errorf("Unallocated %d, expected %d", u, left)
 	}
 }
 func free(t *testing.T, ipam *IPAM, addr string, left int64) {
@@ -45,6 +45,26 @@ func create(t *testing.T, cidr string, left int64) *IPAM {
 	}
 	return ipam
 }
+func reserve(t *testing.T, ipam *IPAM, addr string, expected_err bool, left int64) {
+	err := ipam.Reserve(net.ParseIP(addr))
+	if err != nil {
+		if ! expected_err {
+			t.Errorf("Unexpected error for %s", addr)
+		}
+	}
+	u := ipam.Unallocated()
+	if u != left {
+		t.Errorf("Unallocated %d, expected %d", u, left)
+	}
+}
+func reserveFirstAndLast(t *testing.T, ipam *IPAM, left int64) {
+	ipam.ReserveFirstAndLast()
+	u := ipam.Unallocated()
+	if u != left {
+		t.Errorf("Unallocated %d, expected %d", u, left)
+	}
+}
+
 
 
 func TestBasic(t *testing.T) {
@@ -89,5 +109,21 @@ func TestBasic(t *testing.T) {
 	allocate(t, ipam, "1000::", math.MaxInt64)
 	allocate(t, ipam, "1000::1", math.MaxInt64-1)
 	allocate(t, ipam, "1000::2", math.MaxInt64-2)
-}
 
+	ipam = create(t, "1000::/126", 4)
+	reserve(t, ipam, "1000::", false, 3)
+	reserve(t, ipam, "1000::", true, 3)
+	reserve(t, ipam, "1000::3", false, 2)
+	reserve(t, ipam, "1000::4", true, 2)
+
+	ipam = create(t, "1000::/128", 1)
+	reserveFirstAndLast(t, ipam, 0)
+	ipam = create(t, "1000::/127", 2)
+	reserveFirstAndLast(t, ipam, 0)
+	ipam = create(t, "1000::/126", 4)
+	reserveFirstAndLast(t, ipam, 2)
+	allocate(t, ipam, "1000::1", 1)
+	allocate(t, ipam, "1000::2", 0)
+	free(t, ipam, "1000::2", 1)
+	allocate(t, ipam, "1000::2", 0)
+}
