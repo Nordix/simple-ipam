@@ -1,12 +1,6 @@
-# simple-ipam
 
-A super-simple IPAM.
+package main
 
-This IPAM administers addresses from a single CIDR range, e.g `1100::/120`.
-
-Example;
-
-```go
 import (
 	"fmt"
 	"github.com/Nordix/simple-ipam/pkg/ipam"
@@ -20,4 +14,3 @@ func main() {
 	fmt.Printf("Allocated; %s\n", a)
 	ipam.Free(a)
 }
-```
