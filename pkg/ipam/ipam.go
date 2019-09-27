@@ -11,6 +11,7 @@ import (
 )
 
 type IPAM struct {
+	CIDR net.IPNet
 	prefix *ipaddr.Prefix
 	cursor *ipaddr.Cursor
 	allocated map[string]bool
@@ -24,6 +25,7 @@ func New(cidr string) (*IPAM, error) {
 	prefix := ipaddr.NewPrefix(net)
 	cursor := ipaddr.NewCursor([]ipaddr.Prefix{*prefix})
 	return &IPAM{
+		CIDR:   *net,
 		prefix: prefix,
 		cursor: cursor,
 		allocated: make(map[string]bool),

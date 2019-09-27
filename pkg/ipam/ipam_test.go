@@ -39,6 +39,10 @@ func create(t *testing.T, cidr string, left int64) *IPAM {
 	if i != left {
 		t.Errorf("Unallocated %d, expected %d", i, left)
 	}
+	cidr_str := ipam.CIDR.String()
+	if cidr_str != cidr {
+		t.Errorf("CIDR set to %s, expected %s", cidr_str, cidr)
+	}
 	return ipam
 }
 
