@@ -7,6 +7,8 @@ This IPAM administers addresses from a single CIDR range, e.g `1100::/120`.
 Example;
 
 ```go
+package main
+
 import (
 	"fmt"
 	"github.com/Nordix/simple-ipam/pkg/ipam"
@@ -21,3 +23,5 @@ func main() {
 	ipam.Free(a)
 }
 ```
+
+[Go playground](https://play.golang.org/p/2JAl0s9S5s9)
