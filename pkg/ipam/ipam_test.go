@@ -39,16 +39,16 @@ func create(t *testing.T, cidr string, left int64) *IPAM {
 	if i != left {
 		t.Errorf("Unallocated %d, expected %d", i, left)
 	}
-	cidr_str := ipam.CIDR.String()
-	if cidr_str != cidr {
-		t.Errorf("CIDR set to %s, expected %s", cidr_str, cidr)
+	cidrStr := ipam.CIDR.String()
+	if cidrStr != cidr {
+		t.Errorf("CIDR set to %s, expected %s", cidrStr, cidr)
 	}
 	return ipam
 }
-func reserve(t *testing.T, ipam *IPAM, addr string, expected_err bool, left int64) {
+func reserve(t *testing.T, ipam *IPAM, addr string, expectedErr bool, left int64) {
 	err := ipam.Reserve(net.ParseIP(addr))
 	if err != nil {
-		if ! expected_err {
+		if ! expectedErr {
 			t.Errorf("Unexpected error for %s", addr)
 		}
 	}
@@ -64,8 +64,6 @@ func reserveFirstAndLast(t *testing.T, ipam *IPAM, left int64) {
 		t.Errorf("Unallocated %d, expected %d", u, left)
 	}
 }
-
-
 
 func TestBasic(t *testing.T) {
 	ipam, err := New("malformed")

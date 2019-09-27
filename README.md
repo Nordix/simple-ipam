@@ -4,6 +4,8 @@ A super-simple IPAM.
 
 This IPAM administers addresses from a single CIDR range, e.g `1100::/120`.
 
+[![GoDoc](https://godoc.org/github.com/Nordix/simple-ipam/pkg/ipam?status.svg)](https://godoc.org/github.com/Nordix/simple-ipam/pkg/ipam)
+
 Example;
 
 ```go
