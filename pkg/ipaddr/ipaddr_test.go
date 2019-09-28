@@ -6,7 +6,7 @@ import (
 )
 
 func create(t *testing.T, cidr, current, last string, size uint64) *Cidr {
-	c, err := NevCidr(cidr)
+	c, err := NewCidr(cidr)
 	if err != nil {
 		t.Errorf("Unexpected error")
 	}

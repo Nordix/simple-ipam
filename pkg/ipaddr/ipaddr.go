@@ -54,8 +54,8 @@ func IPToIPv6Int(ip net.IP) IPv6Int {
 	return ipToIPv6Int(ip.To16())
 }
 
-// NevCidr creates a new Cidr. Error if an invalid cidr string is passed
-func NevCidr(cidr string) (*Cidr, error) {
+// NewCidr creates a new Cidr. Error if an invalid cidr string is passed
+func NewCidr(cidr string) (*Cidr, error) {
 	_, net, err := net.ParseCIDR(cidr)
 	if err != nil {
 		return nil, err

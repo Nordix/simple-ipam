@@ -25,7 +25,7 @@ type IPAM struct {
 // New creates a new IPAM for the passed CIDR.
 // Error if the passed CIDR is invalid.
 func New(cidr string) (*IPAM, error) {
-	c, err := ipaddr.NevCidr(cidr)
+	c, err := ipaddr.NewCidr(cidr)
 	if err != nil {
 		return nil, err
 	}
