@@ -24,6 +24,41 @@ type IPAM struct {
 	allocated map[ipaddr.IPv6Int]bool
 }
 
+// IPAMData data for export/import
+type IPAMData struct {
+	CIDR      string            `json:"cidr"`
+	Current   string            `json:"current"`
+	Flags     map[string]string `json:"flags,omitempty"`
+	Allocated []string          `json:"allocated,omitempty"`
+}
+
+// Import re-creates a ipam from previously exported data
+func Import(data *IPAMData) (*IPAM, error) {
+	i, err := New(data.CIDR)
+	if err != nil {
+		return nil, err
+	}
+	i.cidr.Current = ipaddr.IPToIPv6Int(net.ParseIP(data.Current))
+	for _, a := range data.Allocated {
+		i.allocated[ipaddr.IPToIPv6Int(net.ParseIP(a))] = true
+	}
+	return i, nil
+}
+
+// Export export the ipam in a storable form
+func (i *IPAM) Export() *IPAMData {
+	var data IPAMData
+	data.CIDR = i.CIDR.String()
+	data.Current = ipaddr.IP(i.cidr.Current).String()
+	data.Allocated = make([]string, len(i.allocated))
+	x := 0
+	for k := range i.allocated {
+		data.Allocated[x] = ipaddr.IP(k).String()
+		x = x + 1
+	}
+	return &data
+}
+
 // New creates a new IPAM for the passed CIDR.
 // Error if the passed CIDR is invalid.
 func New(cidr string) (*IPAM, error) {
