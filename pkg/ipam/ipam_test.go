@@ -124,4 +124,12 @@ func TestBasic(t *testing.T) {
 	allocate(t, ipam, "1000::2", 0)
 	free(t, ipam, "1000::2", 1)
 	allocate(t, ipam, "1000::2", 0)
+
+	ipam = create(t, "1000::/64", math.MaxUint64)
+	reserveFirstAndLast(t, ipam, math.MaxUint64)
+	allocate(t, ipam, "1000::1", math.MaxUint64)
+	allocate(t, ipam, "1000::2", math.MaxUint64)
+	allocate(t, ipam, "1000::3", math.MaxUint64)
+	free(t, ipam, "1000::1", math.MaxUint64)
+	reserve(t, ipam, "1000::4", true, math.MaxUint64)
 }
