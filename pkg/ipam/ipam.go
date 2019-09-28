@@ -7,39 +7,33 @@
 // The functions are NOT thread safe.
 package ipam
 
-
 import (
 	"fmt"
-	"math"
-	"math/big"
 	"net"
 
-	"github.com/mikioh/ipaddr"
+	"github.com/Nordix/simple-ipam/pkg/ipaddr"
 )
 
 // IPAM holds the ipam state
 type IPAM struct {
 	// The original CIDR range
-	CIDR net.IPNet
-	prefix *ipaddr.Prefix
-	cursor *ipaddr.Cursor
-	allocated map[string]bool
+	CIDR      net.IPNet
+	cidr      *ipaddr.Cidr
+	allocated map[ipaddr.IPv6Int]bool
 }
 
 // New creates a new IPAM for the passed CIDR.
 // Error if the passed CIDR is invalid.
 func New(cidr string) (*IPAM, error) {
-	_, net, err := net.ParseCIDR(cidr)
+	c, err := ipaddr.NevCidr(cidr)
 	if err != nil {
 		return nil, err
 	}
-	prefix := ipaddr.NewPrefix(net)
-	cursor := ipaddr.NewCursor([]ipaddr.Prefix{*prefix})
+	_, net, _ := net.ParseCIDR(cidr)
 	return &IPAM{
-		CIDR:   *net,
-		prefix: prefix,
-		cursor: cursor,
-		allocated: make(map[string]bool),
+		CIDR:      *net,
+		cidr:      c,
+		allocated: make(map[ipaddr.IPv6Int]bool),
 	}, nil
 }
 
@@ -50,13 +44,11 @@ func (i *IPAM) Allocate() (net.IP, error) {
 		return nil, fmt.Errorf("No addresses left")
 	}
 	for {
-		p := i.cursor.Pos()
-		if i.cursor.Next() == nil {
-			i.cursor.Reset(nil)
-		}
-		if _, ok := i.allocated[p.IP.String()]; !ok {
-			i.allocated[p.IP.String()] = true
-			return p.IP, nil
+		p := i.cidr.Current
+		i.cidr.Step()
+		if _, ok := i.allocated[p]; !ok {
+			i.allocated[p] = true
+			return ipaddr.IP(p), nil
 		}
 	}
 }
@@ -64,30 +56,29 @@ func (i *IPAM) Allocate() (net.IP, error) {
 // Free frees an allocated address.
 // To free a non-allocated address is a no-op.
 func (i *IPAM) Free(a net.IP) {
-	delete(i.allocated, a.String())
+	delete(i.allocated, ipaddr.IPToIPv6Int(a))
 }
 
 // Unallocated returns the number of unallocated addresses.
-// If the number is > math.MaxInt64 then math.MaxInt64 is returned.
-func (i *IPAM) Unallocated() int64 {
-	tot := i.prefix.NumNodes()
-	free := tot.Sub(tot, big.NewInt(int64(len(i.allocated))))
-	if free.IsInt64() {
-		return free.Int64()
+// If the number is > math.MaxUint64 then math.MaxUint64 is returned.
+func (i *IPAM) Unallocated() uint64 {
+	if i.cidr.Size > 0 {
+		return i.cidr.Size - uint64(len(i.allocated))
 	}
-	return math.MaxInt64
+	return 0
 }
 
 // Reserve reserves an address.
 // Error if the address is outside the CIDR or if the address is allocated already.
 func (i *IPAM) Reserve(a net.IP) error {
-	if ! i.CIDR.Contains(a) {
+	if !i.CIDR.Contains(a) {
 		return fmt.Errorf("Address outside the cidr")
 	}
-	if _, ok := i.allocated[a.String()]; ok {
+	ip := ipaddr.IPToIPv6Int(a)
+	if _, ok := i.allocated[ip]; ok {
 		return fmt.Errorf("Address already allocated")
 	}
-	i.allocated[a.String()] = true
+	i.allocated[ip] = true
 	return nil
 }
 
@@ -95,6 +86,6 @@ func (i *IPAM) Reserve(a net.IP) error {
 // These are valid addresses but some programs may refuse to use them.
 // Note that the number of Unallocated addresses may become zero.
 func (i *IPAM) ReserveFirstAndLast() {
-	i.Reserve(i.cursor.First().IP)
-	i.Reserve(i.cursor.Last().IP)
+	i.allocated[i.cidr.First] = true
+	i.allocated[i.cidr.Last] = true
 }
