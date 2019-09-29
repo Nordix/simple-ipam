@@ -63,17 +63,6 @@ func reserveFirstAndLast(t *testing.T, ipam *IPAM, left uint64) {
 		t.Fatalf("Unallocated %d, expected %d", u, left)
 	}
 }
-func exportImport(t *testing.T, ipam *IPAM, left uint64) *IPAM {
-	i, err := Import(ipam.Export())
-	if err != nil {
-		t.Fatalf("Failed to import ipam")
-	}
-	u := i.Unallocated()
-	if u != left {
-		t.Fatalf("Unallocated %d, expected %d", u, left)
-	}
-	return i
-}
 
 func TestBasic(t *testing.T) {
 	ipam, err := New("malformed")
@@ -150,6 +139,5 @@ func TestBasic(t *testing.T) {
 	free(t, ipam, "100.10.1.1", 6)
 	allocate(t, ipam, "100.10.1.2", 5)
 	allocate(t, ipam, "100.10.1.3", 4)
-	ipam = exportImport(t, ipam, 4)
 	allocate(t, ipam, "100.10.1.4", 3)
 }
