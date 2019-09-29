@@ -59,7 +59,7 @@ func (i *IPAM) Free(a net.IP) {
 }
 
 // Unallocated returns the number of unallocated addresses.
-// If the number is > math.MaxUint64 then math.MaxUint64 is returned.
+// If the CIDR host-bits are >=64 math.MaxUint64 is always returned.
 func (i *IPAM) Unallocated() uint64 {
 	if i.cidr.Size == math.MaxUint64 {
 		return math.MaxUint64
